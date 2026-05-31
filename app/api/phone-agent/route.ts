@@ -15,7 +15,7 @@ Key facts:
 - UK company serving SMEs nationwide
 - Industries: estate agents, healthcare, retail, legal, professional services
 - Free 30-minute discovery consultation available
-- Website: milestoneglobalit.co.uk | Email: me@milestoneglobalit.co.uk
+- Website: milestoneglobalit.co.uk | Email: info@milestoneglobalit.co.uk
 
 Booking a consultation — collect in order: full name, email address, preferred date and time.
 After all three are collected confirm: "Brilliant — I'll send a confirmation to [email] shortly."

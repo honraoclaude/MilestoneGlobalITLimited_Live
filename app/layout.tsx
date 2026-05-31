@@ -54,7 +54,7 @@ const jsonLd = {
       name: 'Milestone Global IT Limited',
       url: 'https://milestoneglobalit.co.uk',
       logo: 'https://milestoneglobalit.co.uk/A.jpg',
-      email: 'me@milestoneglobalit.co.uk',
+      email: 'info@milestoneglobalit.co.uk',
       address: {
         '@type': 'PostalAddress',
         addressCountry: 'GB',

@@ -70,7 +70,7 @@ export default function Footer() {
                   <rect x="2" y="3" width="12" height="10" rx="2" stroke="#00d4ff" strokeWidth="1.3" />
                   <path d="M2 6l6 4 6-4" stroke="#00d4ff" strokeWidth="1.3" />
                 </svg>
-                me@milestoneglobalit.co.uk
+                info@milestoneglobalit.co.uk
               </li>
               <li className="flex items-start gap-2">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mt-0.5 shrink-0">

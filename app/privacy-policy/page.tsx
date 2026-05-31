@@ -13,7 +13,7 @@ const sections = [
 
 For the purposes of UK data protection law, we are the data controller of your personal information.
 
-Contact us: me@milestoneglobalit.co.uk`,
+Contact us: info@milestoneglobalit.co.uk`,
   },
   {
     title: '2. What Data We Collect',
@@ -74,7 +74,7 @@ We may retain data longer if required by law or for legitimate business purposes
 • Right to data portability — you can request your data in a machine-readable format
 • Right to object — you can object to our processing of your data
 
-To exercise any of these rights, please contact us at me@milestoneglobalit.co.uk. We will respond within 30 days.`,
+To exercise any of these rights, please contact us at info@milestoneglobalit.co.uk. We will respond within 30 days.`,
   },
   {
     title: '7. Cookies',
@@ -102,7 +102,7 @@ Continued use of our website after changes are made constitutes your acceptance 
     title: '11. Contact & Complaints',
     content: `If you have any questions about this Privacy Policy or how we handle your data, please contact us at:
 
-Email: me@milestoneglobalit.co.uk
+Email: info@milestoneglobalit.co.uk
 Company: Milestone Global IT Limited
 Location: United Kingdom
 

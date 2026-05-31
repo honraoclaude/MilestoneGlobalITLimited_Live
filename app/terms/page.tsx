@@ -13,7 +13,7 @@ const sections = [
 
 By accessing our website or engaging our services, you agree to these terms. If you do not agree, please do not use our website or services.
 
-Contact: me@milestoneglobalit.co.uk`,
+Contact: info@milestoneglobalit.co.uk`,
   },
   {
     title: '2. Our Services',
