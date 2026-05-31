@@ -72,6 +72,7 @@ export default function EstateAgentsHub() {
           <Link href="/admin/accountants" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">Accountant Demos</Link>
           <span className="px-4 pb-3 text-sm font-semibold text-[#f59e0b] border-b-2 border-[#f59e0b] -mb-px">Estate Agent Demos</span>
           <Link href="/admin/hr-recruitment" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">HR & Recruitment</Link>
+          <Link href="/admin/mortgage-brokers" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">Mortgage Brokers</Link>
         </div>
 
         {/* Intro */}

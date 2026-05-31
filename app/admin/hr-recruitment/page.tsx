@@ -72,6 +72,7 @@ export default function HRRecruitmentHub() {
           <Link href="/admin/accountants" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">Accountant Demos</Link>
           <Link href="/admin/estate-agents" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">Estate Agent Demos</Link>
           <span className="px-4 pb-3 text-sm font-semibold text-[#6366f1] border-b-2 border-[#6366f1] -mb-px">HR & Recruitment</span>
+          <Link href="/admin/mortgage-brokers" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">Mortgage Brokers</Link>
         </div>
 
         {/* Intro */}
