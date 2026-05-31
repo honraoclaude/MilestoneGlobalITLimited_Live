@@ -32,6 +32,9 @@ yarn-error.log*
 # SQLite database (stored on VPS, not in git)
 data/
 
+# Python deploy script (contains VPS credentials — never commit)
+deploy.py
+
 # Python cache
 __pycache__/
 *.pyc
