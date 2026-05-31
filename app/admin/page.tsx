@@ -61,6 +61,9 @@ export default async function AdminPage() {
           <Link href="/admin/estate-agents" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">
             Estate Agent Demos
           </Link>
+          <Link href="/admin/hr-recruitment" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+            HR & Recruitment
+          </Link>
         </div>
 
         {/* Summary cards */}

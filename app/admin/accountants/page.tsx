@@ -71,6 +71,7 @@ export default function AccountantsHub() {
           <Link href="/admin/solicitors" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">Solicitor Demos</Link>
           <span className="px-4 pb-3 text-sm font-semibold text-[#10b981] border-b-2 border-[#10b981] -mb-px">Accountant Demos</span>
           <Link href="/admin/estate-agents" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">Estate Agent Demos</Link>
+          <Link href="/admin/hr-recruitment" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">HR & Recruitment</Link>
         </div>
 
         {/* Intro */}
