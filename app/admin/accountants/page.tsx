@@ -124,6 +124,25 @@ export default function AccountantsHub() {
           ))}
         </div>
 
+        {/* ROI Summary */}
+        <div className="mt-6 glass-card p-5">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+            {[
+              { label: 'Client intake', value: '4 hrs', sub: 'per week' },
+              { label: 'Letter drafting', value: '7 hrs', sub: 'per month' },
+              { label: 'Report summaries', value: '7 hrs', sub: 'per month' },
+              { label: 'FAQ chatbot calls', value: '40%', sub: 'deflected' },
+              { label: 'Year-end checklists', value: '25 hrs', sub: 'per season' },
+            ].map(({ label, value, sub }) => (
+              <div key={label}>
+                <div className="text-[#10b981] font-black text-xl">{value}</div>
+                <div className="text-slate-400 text-xs">{label}</div>
+                <div className="text-slate-600 text-xs">{sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* CTA */}
         <div className="mt-8 glass-card p-6 text-center">
           <p className="text-slate-400 text-sm mb-2">Want these agents built for your practice?</p>

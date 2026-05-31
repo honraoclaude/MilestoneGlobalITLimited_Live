@@ -124,6 +124,25 @@ export default function HRRecruitmentHub() {
           ))}
         </div>
 
+        {/* ROI Summary */}
+        <div className="mt-6 glass-card p-5">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+            {[
+              { label: 'JD writing', value: '11 hrs', sub: 'per month' },
+              { label: 'CV shortlisting', value: '6 hrs', sub: 'per week' },
+              { label: 'Candidate intake', value: '8 hrs', sub: 'per week' },
+              { label: 'Client update emails', value: '5 hrs', sub: 'per week' },
+              { label: 'Offer & rejection letters', value: '6 hrs', sub: 'per week' },
+            ].map(({ label, value, sub }) => (
+              <div key={label}>
+                <div className="text-[#6366f1] font-black text-xl">{value}</div>
+                <div className="text-slate-400 text-xs">{label}</div>
+                <div className="text-slate-600 text-xs">{sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* CTA */}
         <div className="mt-8 glass-card p-6 text-center">
           <p className="text-slate-400 text-sm mb-2">Want these agents built for your agency?</p>
