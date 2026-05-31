@@ -169,7 +169,7 @@ export default function PrivacyPolicy() {
 
         <div className="mt-12 text-center">
           <Link href="/" className="btn-ghost">
-            ← Back to Milestone Global IT
+            ← Back to Milestone Global IT Limited
           </Link>
         </div>
       </div>

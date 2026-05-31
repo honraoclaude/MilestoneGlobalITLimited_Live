@@ -115,7 +115,7 @@ export default function ContactForm() {
                   MG
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-white">Milestone Global IT Ltd</div>
+                  <div className="text-sm font-semibold text-white">Milestone Global IT Limited</div>
                   <div className="text-xs text-slate-500">United Kingdom</div>
                 </div>
               </div>
