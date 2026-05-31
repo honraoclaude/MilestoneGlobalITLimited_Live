@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
+import { insertLead } from '@/lib/db'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const TO_EMAIL = 'honraoclaude@gmail.com'
@@ -27,6 +28,10 @@ export async function POST(req: NextRequest) {
     const cleanPhone = phone?.trim() || null
     const cleanCompany = company?.trim() || null
     const cleanMessage = message.trim()
+
+    try {
+      insertLead({ name: cleanName, email: cleanEmail, phone: cleanPhone, company: cleanCompany, service: serviceInterest, message: cleanMessage })
+    } catch { /* DB failure must not block email delivery */ }
 
     await resend.emails.send({
       from: 'MGIL Website <onboarding@resend.dev>',

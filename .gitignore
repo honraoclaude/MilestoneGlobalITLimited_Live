@@ -29,6 +29,9 @@ yarn-error.log*
 # Claude Code
 .claude/
 
+# SQLite database (stored on VPS, not in git)
+data/
+
 # Python cache
 __pycache__/
 *.pyc
