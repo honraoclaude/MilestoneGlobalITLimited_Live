@@ -52,6 +52,9 @@ export default async function AdminPage() {
           <Link href="/admin/phone-agent" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">
             Phone Agent Demo
           </Link>
+          <Link href="/admin/solicitors" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+            Solicitor Demos
+          </Link>
         </div>
 
         {/* Summary cards */}

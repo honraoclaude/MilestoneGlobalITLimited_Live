@@ -161,6 +161,9 @@ export default function PhoneAgentPage() {
           <span className="px-4 pb-3 text-sm font-semibold text-[#00d4ff] border-b-2 border-[#00d4ff] -mb-px">
             Phone Agent
           </span>
+          <Link href="/admin/solicitors" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+            Solicitor Demos
+          </Link>
         </div>
 
         {/* Phone card */}
