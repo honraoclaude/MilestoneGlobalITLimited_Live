@@ -167,6 +167,9 @@ export default function PhoneAgentPage() {
           <Link href="/admin/accountants" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">
             Accountant Demos
           </Link>
+          <Link href="/admin/estate-agents" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+            Estate Agent Demos
+          </Link>
         </div>
 
         {/* Phone card */}
