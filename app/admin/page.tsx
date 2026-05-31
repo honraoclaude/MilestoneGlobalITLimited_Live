@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { getLeads } from '@/lib/db'
 import { logout } from './actions'
 import StatusSelect from './StatusSelect'
@@ -41,6 +42,16 @@ export default async function AdminPage() {
               Sign out →
             </button>
           </form>
+        </div>
+
+        {/* Tab nav */}
+        <div className="flex gap-1 mb-8 border-b border-white/5">
+          <span className="px-4 pb-3 text-sm font-semibold text-[#00d4ff] border-b-2 border-[#00d4ff] -mb-px">
+            Leads
+          </span>
+          <Link href="/admin/phone-agent" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+            Phone Agent Demo
+          </Link>
         </div>
 
         {/* Summary cards */}
