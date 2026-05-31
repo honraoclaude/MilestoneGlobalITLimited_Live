@@ -98,7 +98,7 @@ export default function MortgageBrokersPage() {
               <p className="text-slate-400 text-xs leading-relaxed mb-3">{agent.desc}</p>
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold" style={{ color: agent.colour }}>{agent.roi}</span>
-                <span className="text-slate-600 text-xs group-hover:text-slate-400 transition-colors">Open →</span>
+                <span className="text-slate-600 text-xs group-hover:text-slate-400 transition-colors">Try demo →</span>
               </div>
             </Link>
           ))}
