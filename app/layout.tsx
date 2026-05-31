@@ -33,6 +33,9 @@ export const metadata: Metadata = {
       'Custom AI chatbots, workflow automation, and AI agents for UK businesses. Save hours every week.',
     images: ['/A.jpg'],
   },
+  verification: {
+    google: 'google0ce8d791806dcacc',
+  },
   robots: {
     index: true,
     follow: true,
@@ -100,7 +103,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en-GB" className="scroll-smooth">
       <head>
         <script
           type="application/ld+json"
