@@ -47,11 +47,14 @@ export default async function AdminPage() {
         </div>
 
         {/* Tab nav */}
-        <div className="flex gap-1 mb-8 border-b border-white/5">
-          <span className="px-4 pb-3 text-sm font-semibold text-[#00d4ff] border-b-2 border-[#00d4ff] -mb-px">
+        <div className="flex gap-1 mb-8 border-b border-white/5 overflow-x-auto">
+          <span className="px-4 pb-3 text-sm font-semibold text-[#00d4ff] border-b-2 border-[#00d4ff] -mb-px whitespace-nowrap">
             Leads
           </span>
-          <Link href="/admin/phone-agent" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+          <Link href="/admin/voice-agent" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors whitespace-nowrap">
+            Voice Agent
+          </Link>
+          <Link href="/admin/phone-agent" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors whitespace-nowrap">
             Phone Agent Demo
           </Link>
           <Link href="/admin/solicitors" className="px-4 pb-3 text-sm text-slate-500 hover:text-slate-300 transition-colors">
