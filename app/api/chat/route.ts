@@ -1,7 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+import { anthropic, streamSSE } from '@/lib/stream'
+import { checkRateLimit, getIp } from '@/lib/rate-limit'
+import { checkBodySize } from '@/lib/validate'
 
 const SYSTEM_PROMPT = `You are the AI assistant for Milestone Global IT Limited, a UK-based AI agent services company. You help potential clients learn about our services and guide them toward getting in touch.
 
@@ -26,6 +26,11 @@ Keep responses under 150 words unless a detailed explanation is genuinely needed
 type Message = { role: 'user' | 'assistant'; content: string }
 
 export async function POST(req: NextRequest) {
+  if (!checkRateLimit(getIp(req)).allowed)
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  if (!checkBodySize(req))
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+
   try {
     const body = await req.json()
     const { messages } = body as { messages: Message[] }
@@ -40,50 +45,19 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const stream = new ReadableStream({
-      async start(controller) {
-        const encoder = new TextEncoder()
-        try {
-          const claudeStream = client.messages.stream({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 1024,
-            system: [
-              {
-                type: 'text',
-                text: SYSTEM_PROMPT,
-                cache_control: { type: 'ephemeral' },
-              },
-            ],
-            messages,
-          })
+    return streamSSE(async (controller, encoder, signal) => {
+      const claudeStream = anthropic.messages.stream({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+        messages,
+      }, { signal })
 
-          for await (const event of claudeStream) {
-            if (
-              event.type === 'content_block_delta' &&
-              event.delta.type === 'text_delta'
-            ) {
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`)
-              )
-            }
-          }
-
-          controller.enqueue(encoder.encode('data: [DONE]\n\n'))
-          controller.close()
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : 'Stream error'
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`))
-          controller.close()
+      for await (const event of claudeStream) {
+        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`))
         }
-      },
-    })
-
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-      },
+      }
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error'

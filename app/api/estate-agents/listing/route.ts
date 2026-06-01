@@ -1,7 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
-
-const client = new Anthropic()
+import { anthropic, streamSSE } from '@/lib/stream'
+import { checkRateLimit, getIp } from '@/lib/rate-limit'
+import { checkBodySize } from '@/lib/validate'
 
 const SYSTEM_PROMPT = `You are an expert UK estate agent copywriter with 15 years of experience writing listings for Rightmove and Zoopla. You write compelling, accurate property descriptions that generate viewings.
 
@@ -28,6 +28,11 @@ Rules:
 - Always end with: "⚠️ AGENT REVIEW REQUIRED — Verify all details before publishing."`
 
 export async function POST(req: NextRequest) {
+  if (!checkRateLimit(getIp(req)).allowed)
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  if (!checkBodySize(req))
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+
   try {
     const { propertyType, bedrooms, bathrooms, area, askingPrice, keyFeatures } = await req.json()
 
@@ -46,35 +51,19 @@ Asking price: ${askingPrice || '[TBC]'}
 Key features and details:
 ${keyFeatures}`
 
-    const stream = new ReadableStream({
-      async start(controller) {
-        const encoder = new TextEncoder()
-        try {
-          const claudeStream = client.messages.stream({
-            model: 'claude-sonnet-4-6',
-            max_tokens: 1024,
-            system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
-            messages: [{ role: 'user', content: userMessage }],
-          })
+    return streamSSE(async (controller, encoder, signal) => {
+      const claudeStream = anthropic.messages.stream({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: userMessage }],
+      }, { signal })
 
-          for await (const event of claudeStream) {
-            if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`))
-            }
-          }
-
-          controller.enqueue(encoder.encode('data: [DONE]\n\n'))
-          controller.close()
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : 'Stream error'
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`))
-          controller.close()
+      for await (const event of claudeStream) {
+        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`))
         }
-      },
-    })
-
-    return new Response(stream, {
-      headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' },
+      }
     })
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Server error' }, { status: 500 })

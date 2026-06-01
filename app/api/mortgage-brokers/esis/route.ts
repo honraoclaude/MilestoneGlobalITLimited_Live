@@ -1,6 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk'
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+import { NextRequest, NextResponse } from 'next/server'
+import { anthropic, streamSSE } from '@/lib/stream'
+import { checkRateLimit, getIp } from '@/lib/rate-limit'
+import { checkBodySize } from '@/lib/validate'
 
 const SYSTEM = `You are an expert UK mortgage broker and financial educator. You take a European Standardised Information Sheet (ESIS) — a dense regulatory document — and rewrite it in plain, friendly English that any first-time buyer can understand.
 
@@ -17,29 +18,34 @@ Cover all of these points:
 
 Use simple, friendly language. No jargon. Structure with clear headers. This is an explanation to help the client understand their mortgage — it is not financial advice.`
 
-export async function POST(req: Request) {
-  const { esisText } = await req.json()
+export async function POST(req: NextRequest) {
+  if (!checkRateLimit(getIp(req)).allowed)
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  if (!checkBodySize(req))
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
 
-  const stream = await anthropic.messages.stream({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1500,
-    system: [{ type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } }],
-    messages: [{ role: 'user', content: `Please rewrite this ESIS in plain English for my client:\n\n${esisText}` }],
-  })
+  try {
+    const { esisText } = await req.json()
 
-  const readable = new ReadableStream({
-    async start(controller) {
-      for await (const chunk of stream) {
+    if (!esisText?.trim()) {
+      return NextResponse.json({ error: 'esisText is required' }, { status: 400 })
+    }
+
+    return streamSSE(async (controller, encoder, signal) => {
+      const claudeStream = anthropic.messages.stream({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        system: [{ type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: `Please rewrite this ESIS in plain English for my client:\n\n${esisText}` }],
+      }, { signal })
+
+      for await (const chunk of claudeStream) {
         if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`))
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`))
         }
       }
-      controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'))
-      controller.close()
-    },
-  })
-
-  return new Response(readable, {
-    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' },
-  })
+    })
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Server error' }, { status: 500 })
+  }
 }

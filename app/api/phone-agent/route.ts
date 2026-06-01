@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
-
-const anthropic = new Anthropic()
+import { anthropic } from '@/lib/stream'
+import { checkRateLimit, getIp } from '@/lib/rate-limit'
+import { checkBodySize } from '@/lib/validate'
 
 const SYSTEM_PROMPT = `You are Alex, the AI phone receptionist for Milestone Global IT Limited, a UK-based AI services company.
 
@@ -29,6 +29,11 @@ Rules:
 const VOICE_ID = process.env.ELEVENLABS_VOICE_ID ?? 'XB0fDUnXU5powFXDhCwa' // Charlotte — British, professional
 
 export async function POST(req: NextRequest) {
+  if (!checkRateLimit(getIp(req)).allowed)
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  if (!checkBodySize(req))
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+
   const elevenKey = process.env.ELEVENLABS_API_KEY
   if (!elevenKey) {
     return NextResponse.json(

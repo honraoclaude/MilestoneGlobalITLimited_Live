@@ -1,11 +1,18 @@
 import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 import { insertLead } from '@/lib/db'
+import { checkRateLimit, getIp } from '@/lib/rate-limit'
+import { checkBodySize, isValidEmail } from '@/lib/validate'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const TO_EMAIL = 'honraoclaude@gmail.com'
 
 export async function POST(req: NextRequest) {
+  if (!checkRateLimit(getIp(req), 10, 60).allowed)
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  if (!checkBodySize(req))
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+
   try {
     const body = await req.json()
     const { name, email, phone, company, serviceInterest, message } = body
@@ -13,7 +20,7 @@ export async function POST(req: NextRequest) {
     if (!name || typeof name !== 'string' || !name.trim()) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
     }
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
+    if (!email || typeof email !== 'string' || !isValidEmail(email.trim())) {
       return NextResponse.json({ error: 'Valid email is required' }, { status: 400 })
     }
     if (!serviceInterest || typeof serviceInterest !== 'string') {

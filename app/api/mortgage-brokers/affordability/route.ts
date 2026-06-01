@@ -1,6 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk'
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+import { NextRequest, NextResponse } from 'next/server'
+import { anthropic, streamSSE } from '@/lib/stream'
+import { checkRateLimit, getIp } from '@/lib/rate-limit'
+import { checkBodySize } from '@/lib/validate'
 
 const SYSTEM = `You are an expert UK mortgage broker and underwriter. You produce structured affordability summaries for broker internal records and lender submission preparation.
 
@@ -32,29 +33,34 @@ NEXT STEPS
 
 End with: "⚠️ BROKER REVIEW REQUIRED — Figures are indicative only. Formal affordability assessment subject to full application and lender criteria."`
 
-export async function POST(req: Request) {
-  const { clientDetails } = await req.json()
+export async function POST(req: NextRequest) {
+  if (!checkRateLimit(getIp(req)).allowed)
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  if (!checkBodySize(req))
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
 
-  const stream = await anthropic.messages.stream({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1500,
-    system: [{ type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } }],
-    messages: [{ role: 'user', content: `Produce an affordability summary for the following client:\n\n${clientDetails}` }],
-  })
+  try {
+    const { clientDetails } = await req.json()
 
-  const readable = new ReadableStream({
-    async start(controller) {
-      for await (const chunk of stream) {
+    if (!clientDetails?.trim()) {
+      return NextResponse.json({ error: 'clientDetails is required' }, { status: 400 })
+    }
+
+    return streamSSE(async (controller, encoder, signal) => {
+      const claudeStream = anthropic.messages.stream({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        system: [{ type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: `Produce an affordability summary for the following client:\n\n${clientDetails}` }],
+      }, { signal })
+
+      for await (const chunk of claudeStream) {
         if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`))
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`))
         }
       }
-      controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'))
-      controller.close()
-    },
-  })
-
-  return new Response(readable, {
-    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' },
-  })
+    })
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Server error' }, { status: 500 })
+  }
 }

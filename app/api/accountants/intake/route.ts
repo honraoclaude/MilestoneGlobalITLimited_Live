@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
-
-const anthropic = new Anthropic()
+import { anthropic } from '@/lib/stream'
+import { checkRateLimit, getIp } from '@/lib/rate-limit'
+import { checkBodySize } from '@/lib/validate'
 
 const SYSTEM_PROMPT = `You are Emma, the AI phone receptionist for Clarke & Associates Chartered Accountants, a professional UK accounting firm. You are warm, clear, and reassuring.
 
@@ -31,6 +31,11 @@ Rules:
 const VOICE_ID = process.env.ELEVENLABS_VOICE_ID ?? 'XB0fDUnXU5powFXDhCwa'
 
 export async function POST(req: NextRequest) {
+  if (!checkRateLimit(getIp(req)).allowed)
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  if (!checkBodySize(req))
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+
   const elevenKey = process.env.ELEVENLABS_API_KEY
   if (!elevenKey) {
     return NextResponse.json({ error: 'ELEVENLABS_API_KEY is not set.' }, { status: 503 })
