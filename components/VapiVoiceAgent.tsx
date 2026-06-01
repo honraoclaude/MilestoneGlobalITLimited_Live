@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import type VapiType from '@vapi-ai/web'
 
 const VAPI_PUBLIC_KEY = '6a200379-e2c7-4eef-bdb4-2ef01cf979fc'
-const ASSISTANT_ID = 'cc61c50c-8929-41c0-8d5f-885ef7c761e6'
+const ASSISTANT_ID = '787be34f-802e-470e-a7d1-4d59afc84edb'
 
 type TranscriptEntry = { role: 'user' | 'assistant'; text: string; id: number }
 type CallStatus = 'idle' | 'connecting' | 'active' | 'ended'
