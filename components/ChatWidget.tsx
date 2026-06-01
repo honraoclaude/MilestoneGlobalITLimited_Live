@@ -17,6 +17,14 @@ function extractAndStripLead(text: string): { clean: string; lead: Record<string
   }
 }
 
+// Strip the tag (including partial mid-stream) before rendering
+function displayContent(text: string): string {
+  return text
+    .replace(/<SAVE_LEAD>[\s\S]*?<\/SAVE_LEAD>/g, '')
+    .replace(/<SAVE_LEAD>[\s\S]*$/, '')
+    .trim()
+}
+
 const WELCOME: Message = {
   role: 'assistant',
   content:
@@ -209,7 +217,7 @@ export default function ChatWidget() {
                       : 'bg-[#151525] border border-white/5 text-slate-200 rounded-bl-sm'
                   }`}
                 >
-                  {msg.content || (
+                  {(msg.role === 'assistant' ? displayContent(msg.content) : msg.content) || (
                     // Typing indicator for empty streaming message
                     <span className="flex items-center gap-1 py-0.5">
                       {[0, 1, 2].map((j) => (
