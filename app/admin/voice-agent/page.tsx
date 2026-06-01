@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import Vapi from '@vapi-ai/web'
 import Link from 'next/link'
+import type VapiType from '@vapi-ai/web'
 
 const VAPI_PUBLIC_KEY = '6a200379-e2c7-4eef-bdb4-2ef01cf979fc'
 const ASSISTANT_ID = 'cc61c50c-8929-41c0-8d5f-885ef7c761e6'
@@ -25,59 +25,68 @@ const STATUS_COLOURS: Record<CallStatus, string> = {
 }
 
 export default function VoiceAgentPage() {
-  const vapiRef = useRef<Vapi | null>(null)
+  const vapiRef = useRef<VapiType | null>(null)
   const [status, setStatus] = useState<CallStatus>('idle')
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([])
   const [leadSaved, setLeadSaved] = useState(false)
   const [duration, setDuration] = useState(0)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const entryId = useRef(0)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const vapi = new Vapi(VAPI_PUBLIC_KEY)
-    vapiRef.current = vapi
+    let vapi: VapiType
 
-    vapi.on('call-start', () => {
-      setStatus('active')
-      setDuration(0)
-      timerRef.current = setInterval(() => setDuration((d) => d + 1), 1000)
-    })
+    import('@vapi-ai/web').then(({ default: Vapi }) => {
+      vapi = new Vapi(VAPI_PUBLIC_KEY)
+      vapiRef.current = vapi
 
-    vapi.on('call-end', () => {
-      setStatus('ended')
-      setIsSpeaking(false)
-      if (timerRef.current) clearInterval(timerRef.current)
-    })
+      vapi.on('call-start', () => {
+        setStatus('active')
+        setErrorMsg(null)
+        setDuration(0)
+        timerRef.current = setInterval(() => setDuration((d) => d + 1), 1000)
+      })
 
-    vapi.on('speech-start', () => setIsSpeaking(true))
-    vapi.on('speech-end', () => setIsSpeaking(false))
+      vapi.on('call-end', () => {
+        setStatus('ended')
+        setIsSpeaking(false)
+        if (timerRef.current) clearInterval(timerRef.current)
+      })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vapi.on('message', (msg: any) => {
-      if (msg.type === 'transcript' && msg.transcriptType === 'final' && msg.transcript?.trim()) {
-        setTranscript((prev) => [
-          ...prev,
-          { role: msg.role, text: msg.transcript.trim(), id: entryId.current++ },
-        ])
-      }
-      if (msg.type === 'tool-calls') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const hasSaveLead = msg.toolCallList?.some((t: any) => t.function?.name === 'save_lead')
-        if (hasSaveLead) setLeadSaved(true)
-      }
-    })
+      vapi.on('speech-start', () => setIsSpeaking(true))
+      vapi.on('speech-end', () => setIsSpeaking(false))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vapi.on('error', (err: any) => {
-      console.error('VAPI error', err)
-      setStatus('ended')
-      if (timerRef.current) clearInterval(timerRef.current)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vapi.on('message', (msg: any) => {
+        if (msg.type === 'transcript' && msg.transcriptType === 'final' && msg.transcript?.trim()) {
+          setTranscript((prev) => [
+            ...prev,
+            { role: msg.role, text: msg.transcript.trim(), id: entryId.current++ },
+          ])
+        }
+        if (msg.type === 'tool-calls') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const hasSaveLead = msg.toolCallList?.some((t: any) => t.function?.name === 'save_lead')
+          if (hasSaveLead) setLeadSaved(true)
+        }
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vapi.on('error', (err: any) => {
+        const msg = err?.message ?? err?.error?.message ?? JSON.stringify(err)
+        setErrorMsg(msg)
+        setStatus('ended')
+        if (timerRef.current) clearInterval(timerRef.current)
+      })
+    }).catch((err) => {
+      setErrorMsg('Failed to load VAPI SDK: ' + err.message)
     })
 
     return () => {
-      vapi.stop()
+      vapi?.stop()
       if (timerRef.current) clearInterval(timerRef.current)
     }
   }, [])
@@ -212,6 +221,17 @@ export default function VoiceAgentPage() {
                   <path d="M5 8l2 2 4-4" stroke="#34d399" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <span className="text-sm text-green-400 font-medium">Lead saved to dashboard</span>
+              </div>
+            )}
+
+            {/* Error display */}
+            {errorMsg && (
+              <div className="flex items-start gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 w-full">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 mt-0.5">
+                  <circle cx="8" cy="8" r="7" stroke="#f87171" strokeWidth="1.4" />
+                  <path d="M8 5v3M8 10.5v.5" stroke="#f87171" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+                <span className="text-xs text-red-400 break-all">{errorMsg}</span>
               </div>
             )}
 
