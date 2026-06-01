@@ -4,6 +4,19 @@ import { useState, useRef, useEffect, KeyboardEvent } from 'react'
 
 type Message = { role: 'user' | 'assistant'; content: string }
 
+const SAVE_LEAD_RE = /<SAVE_LEAD>([\s\S]*?)<\/SAVE_LEAD>/
+
+function extractAndStripLead(text: string): { clean: string; lead: Record<string, string> | null } {
+  const match = SAVE_LEAD_RE.exec(text)
+  if (!match) return { clean: text, lead: null }
+  try {
+    const lead = JSON.parse(match[1])
+    return { clean: text.replace(match[0], '').trim(), lead }
+  } catch {
+    return { clean: text.replace(match[0], '').trim(), lead: null }
+  }
+}
+
 const WELCOME: Message = {
   role: 'assistant',
   content:
@@ -15,6 +28,7 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([WELCOME])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
+  const [leadSaved, setLeadSaved] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -65,6 +79,22 @@ export default function ChatWidget() {
         for (const line of lines) {
           const data = line.slice(6)
           if (data === '[DONE]') {
+            // Check final assistant message for lead capture tag
+            setMessages((prev) => {
+              const updated = [...prev]
+              const last = updated[updated.length - 1]
+              if (last.role !== 'assistant') return prev
+              const { clean, lead } = extractAndStripLead(last.content)
+              if (lead) {
+                fetch('/api/chat/lead', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(lead),
+                }).then(() => setLeadSaved(true)).catch(() => {})
+              }
+              updated[updated.length - 1] = { ...last, content: clean }
+              return updated
+            })
             setStreaming(false)
             return
           }
@@ -146,6 +176,17 @@ export default function ChatWidget() {
               </svg>
             </button>
           </div>
+
+          {/* Lead saved banner */}
+          {leadSaved && (
+            <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
+                <circle cx="7" cy="7" r="6" stroke="#34d399" strokeWidth="1.4" />
+                <path d="M4 7l2 2 4-4" stroke="#34d399" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-xs text-green-400">Your details have been saved — we'll be in touch shortly.</span>
+            </div>
+          )}
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 chat-messages">
